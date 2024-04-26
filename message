@@ -1,0 +1,12 @@
+#!/bin/bash
+set -x
+
+TO=$1
+MESSAGE=$2
+
+echo "============================" >> im-history.log
+echo "to $TO:" >> im-history.log
+echo "$MESSAGE" >> im-history.log
+echo "============================" >> im-history.log
+
+curl -i -X POST -H 'Content-Type: application/json' -d "{\"text\": \"$MESSAGE\", \"channel\": \"$TO\"}" https://chat.canonical.com/hooks/$MM_INCOMING_HOOK_TOKEN
