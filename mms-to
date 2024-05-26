@@ -1,8 +1,10 @@
 #!/bin/bash
+# set -ex
 TO=$1
 MESSAGE="Your Message..."
 WHEN=${2:-"9am"}
 DRY_RUN=${3:-0}
+SCRIPT_DIR=$(dirname "$0")
 
 echo $MESSAGE > /tmp/user_input.tmp
 /usr/bin/vi /tmp/user_input.tmp
@@ -11,8 +13,9 @@ MESSAGE=`cat /tmp/user_input.tmp`
 USER_TZ=$(curl -s -H "Authorization: Bearer $MM_BEARER_TOKEN" https://chat.canonical.com/api/v4/users/username/"$TO" | jq -r ".timezone.automaticTimezone")
 if [[ "${USER_TZ}" = "null" ]]; then
     echo "Recipient timezone couldnt determined... will use Europe/Amsterdam as default."
+    USER_TZ="Europe/Amsterdam"
 fi
-USER_TZ=${USER_TZ:-Europe/Amsterdam}
+#USER_TZ=${USER_TZ:-Europe/Amsterdam}
 
 DIFF=$(TZ=$USER_TZ date +%-:::z)
 MY_TZ=$(date +%-:::z)
@@ -25,13 +28,13 @@ else
     DIFF=""
 fi
 
-echo "=======================" >> im-enqueue.log
-echo "$TO" >> im-enqueue.log
-echo "$MESSAGE" >> im-enqueue.log
-echo "Schedule at: $WHEN $DIFF" >> im-enqueue.log
+echo "=======================" >> $HOME/im-enqueue.log
+echo "$TO" >> $HOME/im-enqueue.log
+echo "$MESSAGE" >> $HOME/im-enqueue.log
+echo "Schedule at: $WHEN $DIFF" >> $HOME/im-enqueue.log
 if [ $DRY_RUN -eq 1 ]; then
     echo "test test" | at $WHEN $DIFF
 else
-    echo "$PWD/message @$TO \"$MESSAGE\"" | at $WHEN $DIFF &>>im-enqueue.log
+    echo "$SCRIPT_DIR/message @"$TO" \"$MESSAGE\"" | at $WHEN $DIFF &>>$HOME/im-enqueue.log
 fi
-echo "=======================" >> im-enqueue.log
+echo "=======================" >> $HOME/im-enqueue.log
